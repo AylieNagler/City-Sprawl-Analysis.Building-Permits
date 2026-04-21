@@ -13,8 +13,8 @@ def split_columns(df):
     Split long dataframes into two
     columns for better readability.
 
-    Input: dataframe
-    Output: column names and data types in 2 columns
+    Parameters: dataframe
+    Returns: column names and data types in 2 columns
 
     """
 
@@ -50,8 +50,8 @@ def nan_count(df):
     Count the number of NaN values in each column of a 
     dataframe and returns in 2 columns
 
-    Input: dataframe
-    Output: dataframe with column names and NaN counts
+    Parameters: dataframe
+    Returns: dataframe with column names and NaN counts
 
     """
 
@@ -89,8 +89,10 @@ def extract_coords(df):
     """
     Geocode missing coordinates using the Google Maps API with the address column.
 
-    Input: dataframe
-    Output: dataframe with coordinates filled in, list of addresses that failed to geocode
+    Parameters: 
+        dataframe containing coordinate columns w/ missing values
+    returns:
+        dataframe with coordinates filled in, list of addresses that failed to geocode
 
     """
 
@@ -128,3 +130,17 @@ def extract_coords(df):
     df.loc[missing_df.index, 'y_coordinate_nad83'] = missing_df['longitude']
 
     return df, fails
+
+def remove_time(column):
+    """
+    Remove Time from a column w/ 'YYYY-MM-DDT00:00:000' format
+
+    Parameters:
+        series: A pandas Series w/ datetime data
+    Returns:
+        values w/ time stripped
+    """
+
+    clean_column = pd.to_datetime(column)
+
+    return clean_column
