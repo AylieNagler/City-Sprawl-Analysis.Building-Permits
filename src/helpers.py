@@ -65,17 +65,66 @@ def nan_count(df):
     half = (len(nan_counts) + 1) // 2
 
     # Index dataframe to split into two columns
-    first_rows = nan_counts.iloc[:half].reset_index(drop=True) # Get first half of rows
-    last_rows = nan_counts.iloc[half:].reset_index(drop=True) # Get rows from halfway onwards
+
+    # Get first half of rows
+    first_rows = nan_counts.iloc[:half].reset_index(drop=True)
+    # Get rows from halfway onwards
+    last_rows = nan_counts.iloc[half:].reset_index(drop=True)
 
     # Combine the two halves horizontally
     df_two_cols = pd.concat([first_rows, last_rows], axis=1)
 
     # Rename second set of columns for clarity
-    df_two_cols.columns =  ["Column Names", "NaN Count", "Column Names (cont.)", "NaN Count (cont.)"]
+    df_two_cols.columns =  ["Column Names", "NaN Count",
+                             "Column Names (cont.)", "NaN Count (cont.)"]
 
     # Replaced last row with empty string to avoid NaN
     df_two_cols = df_two_cols.fillna("")
 
     # Return results
     return df_two_cols
+
+
+def extract_coords(df):
+    """
+    Geocode missing coordinates using the Google Maps API with the address column.
+
+    Input: dataframe
+    Output: dataframe with coordinates filled in, list of addresses that failed to geocode
+
+    """
+
+    import googlemaps
+    gmaps = googlemaps.Client(key='AIzaSyDPg-7ZNC4wmhVnNKMNQ6_NTPkI-tUkWOQ')
+
+    # Initialize empty lists to append coordinates and fails to
+    longitude = []
+    latitude = []
+    fails = []
+
+    # Define df containing only rows where coordinates are missing
+    missing_df = df[df['x_coordinate_nad83'].isna()].copy()
+
+
+    for row in missing_df['address']:
+        result = gmaps.geocode(row + ", Winnipeg, MB, Canada")
+        # Check if geocode was successful
+        if result:
+            # Append long/lat from best result to lists
+            latitude.append(result[0]['geometry']['location']['lat']) 
+            longitude.append(result[0]['geometry']['location']['lng'])
+        # Append to 'fail' list if geocode unsuccessful
+        else:
+            fails.append(row)
+            latitude.append(None)
+            longitude.append(None)
+
+    # Add coords to missing_df
+    missing_df['latitude'] = latitude
+    missing_df['longitude'] = longitude
+
+    # Index missing df to slot lat/long back in 
+    df.loc[missing_df.index, 'x_coordinate_nad83'] = missing_df['latitude']
+    df.loc[missing_df.index, 'y_coordinate_nad83'] = missing_df['longitude']
+
+    return df, fails
