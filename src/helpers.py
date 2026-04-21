@@ -144,3 +144,25 @@ def remove_time(column):
     clean_column = pd.to_datetime(column)
 
     return clean_column
+
+
+def get_suffix(column):
+    """
+    Get only characteres after the last space from a series
+
+    Parameters: Pandas series with at least one space in its values
+    Returns: suffix of rows in a pandas series
+    """
+
+    # Convert series to list to split suffix    
+    column_values = column.tolist()
+
+    # Initializes empty list to append suffixes to 
+    suffixes = []
+
+    # Loop through rows and split suffixes
+    for row in column_values:
+        suffixes.append(row.split()[-1])
+
+    # Convert list to a set to remove duplicates (mimicking .unique())
+    return(set(suffixes))
