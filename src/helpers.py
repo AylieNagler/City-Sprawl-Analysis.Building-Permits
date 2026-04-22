@@ -406,3 +406,42 @@ def building_up_out(df):
 
     # Set titles
     ax.set_title('Data Shows That Most Winnipeg Neighbourhoods Build Out, Not Up')
+
+
+
+def line_charts(df):
+    """
+    Create overlaid line charts showing permit trends over time 
+    for the top 5 permit types.
+    
+    Parameters: df
+    Returns: None (chart)
+
+    """
+    # Exclude 2026 (incomplete year)
+    df_2025 = df[(df['issue_year'] <= 2025)]
+
+    # Group by year and permit type, get count and reset index to make count a column again
+    yearly_permits = df_2025.groupby(['issue_year', 'permit_type']).size().reset_index(name='count')
+
+    # Get names of top permit types
+    top_types = df['permit_type'].value_counts().head(5).index
+    # Use names to filter df to get only rows w/ top 5 permits
+    yearly_top = yearly_permits[yearly_permits['permit_type'].isin(top_types)]
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Loop through filtered df
+    for permit_type in top_types:
+        # Get rows from filtered df for current permit type
+        data = yearly_top[yearly_top['permit_type'] == permit_type]
+        # Plot data on the same axis
+        ax.plot(data['issue_year'], data['count'], marker='o', label=permit_type)
+
+    # Label axes
+    ax.set_xlabel('Year')
+    ax.set_ylabel('Number of Permits')
+    ax.set_title('Single Family Housing Permits Skyrocketing in Winnipeg')
+    ax.legend()
+    plt.show()
