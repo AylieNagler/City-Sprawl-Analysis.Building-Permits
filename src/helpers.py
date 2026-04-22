@@ -207,3 +207,29 @@ def outliers(df):
         # Convert dictionary to dataframe for nicer output
         nicer_output = pd.DataFrame.from_dict(outlier_col)
     return nicer_output
+
+
+def donut_permit_types(df):
+    """
+    Create a donut chart showing the distribution of permit types.
+    
+    Parameters: df
+    
+    Returns: None (displays the chart)
+    """
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(8,6))
+
+    explode = (0.05, 0, 0, 0.1, 0.1, 0.1, 0.1, 0, 0, 0)
+
+    x = df['permit_type'].value_counts()
+    x = x[x > 1500]  # only keep permit types with more than 1000 permits
+    y = y = x.index
+
+    ax.pie(x, autopct='%1.1f%%', explode=explode, wedgeprops={'width': 0.5}, colors=plt.cm.tab20.colors)
+
+    ax.set_title('Dominance of Permit Types')
+    ax.legend(y)
+    plt.tight_layout()
