@@ -339,3 +339,46 @@ def top_neighbourhoods(df, n):
 
     # Set figure title
     fig.suptitle('Data Shows Winnipeg Builds Out, Not Up', fontsize=16)
+
+
+
+def building_up_out(df):
+    """
+    Create a scatter plot of all neighbourhoods 
+    by number of Housing permits and number
+    of Multi-Residential permits w/ diagonal axline
+    dividing the plot into 'buiding up' or 'building out' zones
+
+    Parameter: dataframe
+    Returns: None (chart)
+    
+    """
+
+
+    import seaborn as sns 
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Filter df for Housing and Multi-Residential permits
+    housing_multi = df[df['permit_type'].isin(['Housing', 'Multi-Residential'])]
+
+    # Count permits per neighbourhood and permit type combination
+    counts = housing_multi.groupby(['neighbourhood_name', 'permit_type']).size().reset_index(name='count')
+    # Pivot so rows are individual neighbourhoods and columns are permit types and fill NaN values w/ 0 (need to be numerical)
+    pivotted = counts.pivot(index='neighbourhood_name', columns='permit_type', values='count').fillna(0)
+
+
+    # Plot graph w/ all neighbourhoods
+    sns.scatterplot(data=pivotted, x='Housing', y='Multi-Residential', ax=ax)
+    # Find the max value across both axes to stretch diagonal line far enough
+    max_val = max(pivotted['Housing'].max(), pivotted['Multi-Residential'].max())
+    # Plot diagonal from 0 to max_val
+    ax.plot([1, max_val], [1, max_val], 'k--', alpha=0.3)
+
+    # Set scales to log to spread out heavily clustered values
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+
+    # Set titles
+    ax.set_title('Data Shows That Most Winnipeg Neighbourhoods Build Out, Not Up')
