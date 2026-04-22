@@ -166,3 +166,44 @@ def get_suffix(column):
 
     # Convert list to a set to remove duplicates (mimicking .unique())
     return(set(suffixes))
+
+
+# Define outlier function
+def outliers(df):
+    """
+    Function to get outliers from numerical columns
+
+    Parameters: dataframe
+    Returns: count and % of outliers for each series containing at least one outlier
+    """
+    # Initialize empty list to store names of columns with outliers
+    outlier_col = {}
+
+    # Loop through columns
+    for i in df.columns:
+        col = df[i]
+        # Check if column is numerical before proceeding
+        if col.dtype == 'int64' or col.dtype == 'float64': 
+            # Get first and third quartiles
+            q1, q3 = col.quantile([0.25, 0.75])
+            # Get IQR
+            IQR = q3 - q1
+            # Get upper and lower limits
+            upper_lim = q3 + 1.5 * IQR
+            lower_lim = q1 - 1.5 * IQR
+
+            # Count outliers below lower limit
+            below = (col < lower_lim).sum()
+            # Count outliers above upper limit
+            above = (col > upper_lim).sum()
+            # Total outliers
+            total_outliers = below + above
+            # Get percentage of outliers
+            percentage = (total_outliers / len(col)) * 100
+
+            # Assign to dictionary if there are outliers
+            if total_outliers > 0:
+                outlier_col[i] = {'count': total_outliers, 'percentage': percentage}
+        # Convert dictionary to dataframe for nicer output
+        nicer_output = pd.DataFrame.from_dict(outlier_col)
+    return nicer_output
