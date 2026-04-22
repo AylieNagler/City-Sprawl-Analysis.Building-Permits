@@ -209,6 +209,8 @@ def outliers(df):
     return nicer_output
 
 
+# PLOTTING FUNCTIONS
+
 def donut_permit_types(df):
     """
     Create a donut chart showing the distribution of permit types.
@@ -222,7 +224,7 @@ def donut_permit_types(df):
 
     fig, ax = plt.subplots(figsize=(8,6))
 
-    explode = (0.05, 0, 0, 0.1, 0.1, 0.1, 0.1, 0, 0, 0)
+    explode = (0.05, 0, 0, 0.1, 0, 0, 0, 0, 0, 0)
 
     x = df['permit_type'].value_counts()
     x = x[x > 1500]  # only keep permit types with more than 1000 permits
@@ -233,3 +235,107 @@ def donut_permit_types(df):
     ax.set_title('Dominance of Permit Types')
     ax.legend(y)
     plt.tight_layout()
+
+
+
+def top_neighbourhoods(df, n):
+
+    """
+    Create side by side scatterplots for top 'n' neighbourhoods 
+    according to number of Housing permits and number
+    of Multi-Residential permits
+
+    Parameters:
+        df: dataframe
+        n: desired number of top neighbourhoods to display
+    
+    Returns: None (charts)
+    """
+
+    import seaborn as sns 
+    import matplotlib.pyplot as plt
+    import colorcet as cc # To get a larger colour palette than sns and plt offer
+
+    fig, ax = plt.subplots(1, 2, figsize=(20, 6))
+
+
+    """
+    Filter df for Housing and Multi-Residential permits
+    """
+    # Filter df for Housing and Multi-Residential permits
+    housing_multi = df[df['permit_type'].isin(['Housing', 'Multi-Residential'])]
+    # Count permits per neighbourhood and permit type combination in filtered df
+    counts = housing_multi.groupby(['neighbourhood_name',
+                                    'permit_type']).size().reset_index(name='count')
+    # Pivot so rows are neighbourhood names and columns are permit types fill NaN
+    pivotted = counts.pivot(index='neighbourhood_name', 
+                            columns='permit_type', values='count').fillna(0)
+
+
+    """
+    Top 10 neighbourhoods by Housing permit count
+    """
+    # Get top 10 neighbourhoods by housing permit count; set index to names
+    top_n_house = pivotted['Housing'].sort_values(ascending=False).head(15).index
+    # Filter pivotted df for top_n_house; reset index to use names in scatter plot
+    pivot_n_house = pivotted.loc[top_n_house].reset_index()
+
+
+    """
+    Top 10 neighbourhoods by Multiple-Residential permit count
+    """
+
+    # Get top 10 neighbourhoods by multi-residential permit count;set index to names
+    top_n_mr = pivotted['Multi-Residential'].sort_values(ascending=False).head(n).index
+    # Filter pivotted df for top_10 and reset index to a column for scatter plot
+    pivot_n_mr = pivotted.loc[top_n_mr].reset_index()
+
+
+    """
+    Create colour map so neighbourhoods that appear in both sets share a colour
+    """
+
+    # Converts top_10_house and top_10_mr index to list to concatenate, then to set to remove duplicates
+    top_all = list(set(list(top_n_house) + list(top_n_mr)))
+    # Set color palette
+    colours = sns.color_palette(cc.b_glasbey_bw_minc_20_maxl_70, n_colors=len(top_all))
+    # Convert to tuple to pair up neighbourhood_names w/ colours, then to dict to feed to sns
+    color_map = dict(zip(top_all, colours))
+
+
+    """
+    Plot both axes
+    """
+    # Plot Housing
+    sns.scatterplot(data=pivot_n_house, x='Housing', y='Multi-Residential', 
+                    hue='neighbourhood_name', s=100, ax=ax[0], palette=color_map)
+    # Get rightmost and topmost value (max on both axes) to plot diagonal
+    max_val2 = max(pivot_n_house['Housing'].max(), pivot_n_mr['Multi-Residential'].max())
+    # Plot diagonal line
+    ax[0].plot([1, max_val2], [1, max_val2], 'k--', alpha=0.3)
+
+    # Set scales to log to spread out heavily clustered values
+    ax[0].set_xscale('log')
+    ax[0].set_yscale('log')
+
+    # Set titles
+    ax[0].set_title('Top 15 Neighbourhoods by Housing Permits')
+
+
+    # Plot 'Multi-Residential'
+    sns.scatterplot(data=pivot_n_mr, x='Housing', y='Multi-Residential', 
+                    hue='neighbourhood_name', s=100, ax=ax[1], palette=color_map)
+    # Get rightmost and topmost value (max on both axes) to plot diagonal
+    max_val2 = max(pivot_n_mr['Housing'].max(), pivot_n_mr['Multi-Residential'].max())
+    # Plot diagonal
+    ax[1].plot([1, max_val2], [1, max_val2], 'k--', alpha=0.3)
+
+    # Set scales to log to spread out heavily clustered values
+    ax[1].set_xscale('log')
+    ax[1].set_yscale('log')
+
+    # Set titles
+    ax[1].set_title(f'Top {n} Neighbourhoods by Multi-Residential Permits')
+
+    # Set figure title
+    fig.suptitle('Data Shows Winnipeg Builds Out, Not Up', fontsize=16)
