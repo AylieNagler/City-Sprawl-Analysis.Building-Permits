@@ -85,6 +85,26 @@ def nan_count(df):
     return df_two_cols
 
 
+def split_dates(df, column_name):
+    """
+    Split datetime column into year, month, and day series
+
+    Parameters:
+        df (dataframe)
+        column_name (string name)
+
+    Returns:
+        year series, month series, day series 
+    """
+
+
+    df[f'{column_name}_year'] = df[column_name].dt.year
+    df[f'{column_name}_month'] = df[column_name].dt.month
+    df[f'{column_name}_day'] = df[column_name].dt.day
+
+    return df[f'{column_name}_year'], df[f'{column_name}_month'], df[f'{column_name}_day']
+
+
 def extract_coords(df):
     """
     Geocode missing coordinates using the Google Maps API with the address column.
