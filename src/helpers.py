@@ -262,6 +262,10 @@ def top_neighbourhoods(df, n):
     """
     Filter df for Housing and Multi-Residential permits
     """
+    # Filter df for only New Construction
+
+    df_new = df[(df['work_type'] == 'Construct New')]
+
     # Filter df for Housing and Multi-Residential permits
     housing_multi = df[df['permit_type'].isin(['Housing', 'Multi-Residential'])]
     # Count permits per neighbourhood and permit type combination in filtered df
