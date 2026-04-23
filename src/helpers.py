@@ -507,5 +507,51 @@ def stacked_bar(models, train_accuracy, test_accuracy):
     ax.legend()
 
     # Set labels
-    ax.set_title('Training Accuracy')
+    ax.set_title('Model Accuracy')
     ax.set_ylabel('Accuracy')
+
+def rf_model(df, depth, n):
+    """
+    Duplicate the better random forest model to return just the model
+
+    Parameters:
+        df: dataframe
+        depth: tree depth to try
+        n: number of trees
+    
+    Returns: 
+        rf_model1: trained random forest
+        features.columns: names of columns 
+    """
+
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.metrics import accuracy_score
+    import numpy as np
+
+
+    # Define features and label
+    top_20 = df['neighbourhood_name'].value_counts().head(20).index
+    df_top20 = df[df['neighbourhood_name'].isin(top_20)]
+
+
+    df_feat = df_top20[['permit_group', 'permit_type', 'work_type', 'sub_type', 'dwelling_units_created', 'issue_year']]
+    label = df_top20['neighbourhood_name'].astype(str)
+
+    # Encode data
+    features = pd.get_dummies(df_feat)
+
+    # Split data
+    from sklearn.model_selection import train_test_split
+    x_train, x_test, y_train, y_test = train_test_split(features, label, train_size=0.6, random_state=42)
+
+    # Define hyperparameters
+    n1 = n
+    d1 = depth
+
+    # Define model
+    rf_model1 = RandomForestClassifier(n_estimators=n1, max_depth=d1, class_weight='balanced', random_state=42)
+
+    # Train model
+    rf_model1.fit(x_train, y_train)
+
+    return rf.model1, features.columns
