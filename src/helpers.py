@@ -1,5 +1,5 @@
 """
-Helper functions for [Your Project Name].
+Helper functions for Analysis on City Sprawl Through the Lens of Winnipeg Building Permits
 
 This module contains reusable functions for data cleaning,
 analysis, and visualization.
