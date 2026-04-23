@@ -97,12 +97,15 @@ def split_dates(df, column_name):
         year series, month series, day series 
     """
 
+    # Erase _date in column name to be replaced by atomic label (day, month, year)
+    base = column_name.replace('_date', '')
 
-    df[f'{column_name}_year'] = df[column_name].dt.year
-    df[f'{column_name}_month'] = df[column_name].dt.month
-    df[f'{column_name}_day'] = df[column_name].dt.day
+    df[f'{base}_year'] = df[column_name].dt.year
+    df[f'{base}_month'] = df[column_name].dt.month
+    df[f'{base}_day'] = df[column_name].dt.day
 
-    return df[f'{column_name}_year'], df[f'{column_name}_month'], df[f'{column_name}_day']
+
+    return df[f'{base}_year'], df[f'{base}_month'], df[f'{base}_day']
 
 
 
@@ -241,7 +244,7 @@ def top_neighbourhoods(df, n):
     df_new = df[(df['work_type'] == 'Construct New')]
 
     # Filter df for Housing and Multi-Residential permits
-    housing_multi = df[df['permit_type'].isin(['Housing', 'Multi-Residential'])]
+    housing_multi = df_new[df_new['permit_type'].isin(['Housing', 'Multi-Residential'])]
     # Count permits per neighbourhood and permit type combination in filtered df
     counts = housing_multi.groupby(['neighbourhood_name',
                                     'permit_type']).size().reset_index(name='count')
@@ -298,7 +301,7 @@ def top_neighbourhoods(df, n):
     ax[0].set_yscale('log')
 
     # Set titles
-    ax[0].set_title('Top 15 Neighbourhoods by Housing Permits')
+    ax[0].set_title('Top 15 Neighbourhoods by New Construction Housing Permits')
 
 
     # Plot 'Multi-Residential'
@@ -314,7 +317,7 @@ def top_neighbourhoods(df, n):
     ax[1].set_yscale('log')
 
     # Set titles
-    ax[1].set_title(f'Top {n} Neighbourhoods by Multi-Residential Permits')
+    ax[1].set_title(f'Top {n} Neighbourhoods by New Construction Multi-Residential Permits')
 
     # Set figure title
     fig.suptitle('Data Shows Winnipeg Builds Out, Not Up', fontsize=16)
