@@ -501,11 +501,11 @@ def stacked_bar(models, train_accuracy, test_accuracy):
 
     # Training accuracy
     ax.bar(models, train_accuracy, label='Train', color='pink')
-    ax.set_title('Training Accuracy')
-    ax.set_ylabel('Accuracy')
 
     # Testing accuracy
     ax.bar(models, test_accuracy, label='Test', color='cornflowerblue')
-    ax.set_title('Testing Accuracy')
-    ax.set_ylabel('Accuracy')
     ax.legend()
+
+    # Set labels
+    ax.set_title('Training Accuracy')
+    ax.set_ylabel('Accuracy')
