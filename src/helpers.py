@@ -555,3 +555,36 @@ def rf_model(df, depth, n):
     rf_model1.fit(x_train, y_train)
 
     return rf.model1, features.columns
+
+
+def show_tree(df, depth, n):
+    """
+    Display top nodes of first decision tree in a random forest
+    
+    Parameters: 
+        df: dataframe
+        depth: max_depth
+        n: number of trees in forest
+    Returns:
+        None (plot)
+    """
+
+    import matplotlib.pyplot as plt
+    from sklearn.tree import plot_tree
+
+    # Define features and label
+    top_20 = df['neighbourhood_name'].value_counts().head(20).index # Get top 20 neighbourhoods by frequency of appearance
+    df_top20 = df[df['neighbourhood_name'].isin(top_20)] # filter whole df for rows whose permits are in top 20 neighbourhoods
+    df_feat = df_top20[['permit_group', 'permit_type', 'work_type', 'sub_type', 'dwelling_units_created', 'issue_year']] # Assign features
+    features = pd.get_dummies(df_feat) # Encode features
+
+    # Define figure
+    fig, ax = plt.subplots(figsize=(20, 10))
+
+    # Plot tree on figure
+    plot_tree(rf_model(df, depth, n).estimators_[0], 
+            feature_names=features.columns,
+            fontsize=12,
+            max_depth=1,
+            ax=ax)
+    plt.show()
