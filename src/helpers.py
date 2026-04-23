@@ -105,51 +105,6 @@ def split_dates(df, column_name):
     return df[f'{column_name}_year'], df[f'{column_name}_month'], df[f'{column_name}_day']
 
 
-def extract_coords(df):
-    """
-    Geocode missing coordinates using the Google Maps API with the address column.
-
-    Parameters: 
-        dataframe containing coordinate columns w/ missing values
-    returns:
-        dataframe with coordinates filled in, list of addresses that failed to geocode
-
-    """
-
-    import googlemaps
-    gmaps = googlemaps.Client(key='AIzaSyDPg-7ZNC4wmhVnNKMNQ6_NTPkI-tUkWOQ')
-
-    # Initialize empty lists to append coordinates and fails to
-    longitude = []
-    latitude = []
-    fails = []
-
-    # Define df containing only rows where coordinates are missing
-    missing_df = df[df['x_coordinate_nad83'].isna()].copy()
-
-
-    for row in missing_df['address']:
-        result = gmaps.geocode(row + ", Winnipeg, MB, Canada")
-        # Check if geocode was successful
-        if result:
-            # Append long/lat from best result to lists
-            latitude.append(result[0]['geometry']['location']['lat']) 
-            longitude.append(result[0]['geometry']['location']['lng'])
-        # Append to 'fail' list if geocode unsuccessful
-        else:
-            fails.append(row)
-            latitude.append(None)
-            longitude.append(None)
-
-    # Add coords to missing_df
-    missing_df['latitude'] = latitude
-    missing_df['longitude'] = longitude
-
-    # Index missing df to slot lat/long back in 
-    df.loc[missing_df.index, 'x_coordinate_nad83'] = missing_df['latitude']
-    df.loc[missing_df.index, 'y_coordinate_nad83'] = missing_df['longitude']
-
-    return df, fails
 
 def remove_time(column):
     """
