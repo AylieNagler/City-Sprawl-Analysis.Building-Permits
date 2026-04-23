@@ -184,7 +184,6 @@ def outliers(df):
     return nicer_output
 
 
-# PLOTTING FUNCTIONS
 
 def donut_permit_types(df):
     """
@@ -480,3 +479,33 @@ def rf(df, depth1, depth2, n):
     test_accuracy.append(accuracy_score(y_test, test_pred_rf2))
 
     return models, train_accuracy, test_accuracy
+
+
+def stacked_bar(models, train_accuracy, test_accuracy):
+    """
+    Create a stacked nar chart showing train and test accuracy
+    of models.
+
+    Parameters:
+        models: list of models
+        train_accuracy: list of training accuracy scores
+        test_accuracy: list of testing accuracy scores
+    Returns:
+        None (chart)
+
+    """
+    import matplotlib.pyplot as plt
+    
+    # Define figure
+    fig, ax = plt.subplots(figsize=(12,6))
+
+    # Training accuracy
+    ax.bar(models, train_accuracy, label='Train', color='pink')
+    ax.set_title('Training Accuracy')
+    ax.set_ylabel('Accuracy')
+
+    # Testing accuracy
+    ax.bar(models, test_accuracy, label='Test', color='cornflowerblue')
+    ax.set_title('Testing Accuracy')
+    ax.set_ylabel('Accuracy')
+    ax.legend()
