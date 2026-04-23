@@ -418,6 +418,8 @@ def line_charts(df):
     Returns: None (chart)
 
     """
+    import matplotlib.pyplot as plt
+
     # Exclude 2026 (incomplete year)
     df_2025 = df[(df['issue_year'] <= 2025)]
 
