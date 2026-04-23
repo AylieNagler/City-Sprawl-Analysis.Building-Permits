@@ -184,7 +184,6 @@ def outliers(df):
     return nicer_output
 
 
-# PLOTTING FUNCTIONS
 
 def donut_permit_types(df):
     """
@@ -285,6 +284,7 @@ def top_neighbourhoods(df, n):
     """
     Plot both axes
     """
+
     # Plot Housing
     sns.scatterplot(data=pivot_n_house, x='Housing', y='Multi-Residential', 
                     hue='neighbourhood_name', s=100, ax=ax[0], palette=color_map)
@@ -401,4 +401,187 @@ def line_charts(df):
     ax.set_ylabel('Number of Permits')
     ax.set_title('Single Family Housing Permits Skyrocketing in Winnipeg')
     ax.legend()
+    plt.show()
+
+
+def rf(df, depth1, depth2, n):
+    """
+    Split a dataframe into 60% train and 40% test, train a Random Forest 
+    according to the parameters chosen by the user and return results in
+    lists
+
+    Parameters:
+        df: dataframe
+        depth1: tree depth to try
+        depth2: another tree depth to try
+        n: number of trees
+    
+    Returns: 
+        models: list of models
+        train_accuracy: list of training accuracy scores
+        test_accuracy: list of testing accuracy scores
+    """
+
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.metrics import accuracy_score
+    import numpy as np
+
+
+    # Define features and label
+    top_20 = df['neighbourhood_name'].value_counts().head(20).index
+    df_top20 = df[df['neighbourhood_name'].isin(top_20)]
+
+
+    df_feat = df_top20[['permit_group', 'permit_type', 'work_type', 'sub_type', 'dwelling_units_created', 'issue_year']]
+    label = df_top20['neighbourhood_name'].astype(str)
+
+    # Encode data
+    features = pd.get_dummies(df_feat)
+
+    # Split data
+    from sklearn.model_selection import train_test_split
+    x_train, x_test, y_train, y_test = train_test_split(features, label, train_size=0.6, random_state=42)
+
+    # Intitialize empty lists to store results
+    models = []
+    train_accuracy = []
+    test_accuracy = []
+
+    # Define hyperparameters
+    n1 = n
+    d1 = depth1
+    d2 = depth2
+
+    # Define models
+    rf_model1 = RandomForestClassifier(n_estimators=n1, max_depth=d1, class_weight='balanced', random_state=42)
+    rf_model2 = RandomForestClassifier(n_estimators=n1, max_depth=d2, class_weight='balanced', random_state=42)
+
+    # Train models
+    rf_model1.fit(x_train, y_train)
+    rf_model2.fit(x_train, y_train)
+
+    # Predictions
+    train_pred_rf1 = rf_model1.predict(x_train)  # Train on train
+    test_pred_rf1  = rf_model1.predict(x_test)   # Test on test
+
+    train_pred_rf2 = rf_model2.predict(x_train)  # Train on train
+    test_pred_rf2  = rf_model2.predict(x_test)   # Test on test
+
+    # Append model names
+    models.append(f'RF n={n} depth={depth1}')
+    models.append(f'RF n={n} depth={depth2}')
+
+    # Accuracy
+    train_accuracy.append(accuracy_score(y_train, train_pred_rf1))
+    test_accuracy.append(accuracy_score(y_test, test_pred_rf1))
+
+    train_accuracy.append(accuracy_score(y_train, train_pred_rf2))
+    test_accuracy.append(accuracy_score(y_test, test_pred_rf2))
+
+    return models, train_accuracy, test_accuracy
+
+
+def stacked_bar(models, train_accuracy, test_accuracy):
+    """
+    Create a stacked nar chart showing train and test accuracy
+    of models.
+
+    Parameters:
+        models: list of models
+        train_accuracy: list of training accuracy scores
+        test_accuracy: list of testing accuracy scores
+    Returns:
+        None (chart)
+
+    """
+    import matplotlib.pyplot as plt
+    
+    # Define figure
+    fig, ax = plt.subplots(figsize=(12,6))
+
+    # Training accuracy
+    ax.bar(models, train_accuracy, label='Train', color='pink')
+
+    # Testing accuracy
+    ax.bar(models, test_accuracy, label='Test', color='cornflowerblue')
+    ax.legend()
+
+    # Set labels
+    ax.set_title('Model Accuracy')
+    ax.set_ylabel('Accuracy')
+
+def rf_model(df, depth, n):
+    """
+    Duplicate the better random forest model to return just the model
+
+    Parameters:
+        df: dataframe
+        depth: tree depth to try
+        n: number of trees
+    
+    Returns: 
+        rf_model1: trained random forest
+        features.columns: names of columns 
+    """
+
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.metrics import accuracy_score
+    import numpy as np
+
+
+    # Define features and label
+    top_20 = df['neighbourhood_name'].value_counts().head(20).index
+    df_top20 = df[df['neighbourhood_name'].isin(top_20)]
+
+
+    df_feat = df_top20[['permit_group', 'permit_type', 'work_type', 'sub_type', 'dwelling_units_created', 'issue_year']]
+    label = df_top20['neighbourhood_name'].astype(str)
+
+    # Encode data
+    features = pd.get_dummies(df_feat)
+
+    # Split data
+    from sklearn.model_selection import train_test_split
+    x_train, x_test, y_train, y_test = train_test_split(features, label, train_size=0.6, random_state=42)
+
+    # Define hyperparameters
+    n1 = n
+    d1 = depth
+
+    # Define model
+    rf_model1 = RandomForestClassifier(n_estimators=n1, max_depth=d1, class_weight='balanced', random_state=42)
+
+    # Train model
+    rf_model1.fit(x_train, y_train)
+
+    return rf_model1, features.columns
+
+
+def show_tree(df, depth, n):
+    """
+    Display top nodes of first decision tree in a random forest
+    
+    Parameters: 
+        df: dataframe
+        depth: max_depth
+        n: number of trees in forest
+    Returns:
+        None (plot)
+    """
+
+    import matplotlib.pyplot as plt
+    from sklearn.tree import plot_tree
+
+    # Get model and feature names from rf_model()
+    model, feature_names = rf_model(df, depth, n)
+
+    # Define figure
+    fig, ax = plt.subplots(figsize=(20, 10))
+
+    # Plot tree on figure
+    plot_tree(model.estimators_[0], 
+            feature_names=feature_names,
+            fontsize=12,
+            max_depth=1,
+            ax=ax)
     plt.show()
