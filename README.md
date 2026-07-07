@@ -1,4 +1,4 @@
-# COMP2040-Assignment3
+# Analysis on City Sprawl Through the Lens of Winnipeg Building Permits
 
 Data URL (shortened with bitly):
 https://bit.ly/41NYUwK
